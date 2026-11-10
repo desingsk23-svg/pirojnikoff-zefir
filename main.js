@@ -4,8 +4,39 @@ import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { FLAVORS } from './flavors.js';
 
 gsap.registerPlugin(ScrollTrigger);
+ScrollTrigger.config({ ignoreMobileResize: true }); // не дёргаться, когда на телефоне прячется адресная строка
 
-const W = 1920, H = 1080;              // система координат макета
+// Две раскладки: десктоп — макет 1920×1080, телефон (вертикальный экран) — рамка 1080×2340.
+const MOBILE = innerWidth / innerHeight < 0.8;
+const W = MOBILE ? 1080 : 1920, H = MOBILE ? 2340 : 1080;
+document.documentElement.classList.toggle('mobile', MOBILE);
+// при повороте телефона / смене раскладки — пересобираем страницу
+addEventListener('resize', () => { if ((innerWidth / innerHeight < 0.8) !== MOBILE) location.reload(); });
+
+if (MOBILE) {
+  // Пачка в вертикальной рамке: по центру сверху, тексты — снизу.
+  const TAU = Math.PI * 2;
+  const MPACK = [
+    { c: [540, 880], h: 900, roll: 10, yaw: -0.3, pitch: 0.06 },          // чуть вправо
+    { c: [540, 900], h: 980, roll: -4, yaw: TAU + 0.04, pitch: -0.03 },    // почти лицом, крупнее
+    { c: [570, 1030], h: 760, roll: -18, yaw: TAU + 0.38, pitch: 0.03 },  // чуть влево, мельче
+  ];
+  // Элементы вкуса переносим относительно пачки: по горизонтали сжимаем, чтобы влезли в узкий экран.
+  const KX = 0.62, KY = 0.85, KS = 0.74;
+  FLAVORS.forEach((F) => {
+    const dpack = F.pack;
+    F.elements.forEach((e) => {
+      e.states = e.states.map((s, i) => {
+        if (!s) return null;
+        const dx = s.c[0] - dpack[i].c[0], dy = s.c[1] - dpack[i].c[1];
+        const x = Math.min(1110, Math.max(-30, MPACK[i].c[0] + dx * KX));
+        return { ...s, c: [x, MPACK[i].c[1] + dy * KY], scale: (s.scale ?? 1) * KS };
+      });
+      if (e.off) e.off = { ...e.off, dx: (e.off.dx || 0) * 0.6, dy: (e.off.dy || 0) * 1.1 };
+    });
+    F.pack = MPACK.map((p) => ({ ...p, c: [...p.c] }));
+  });
+}
 const params = new URLSearchParams(location.search);
 const TEST_UV = params.has('uv');      // ?uv — тестовая текстура для проверки развёртки
 const DEBUG = params.has('debug');
@@ -176,7 +207,10 @@ function resize() {
   vw = innerWidth; vh = innerHeight;
   S = Math.min(vw / W, vh / H);
   const tr = `translate(${-W * S / 2}px, ${-H * S / 2}px) scale(${S})`;
-  document.querySelectorAll('.stage').forEach((s) => (s.style.transform = tr));
+  document.querySelectorAll('.stage').forEach((s) => {
+    s.style.width = `${W}px`; s.style.height = `${H}px`;
+    s.style.transform = tr;
+  });
   renderer.setSize(vw, vh, false);
   // 1 единица мира = 1 px макета, центр макета = центр экрана
   camera.aspect = vw / vh;

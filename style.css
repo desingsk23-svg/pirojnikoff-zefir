@@ -161,6 +161,42 @@ html.lenis, html.lenis body { height: auto; }
 }
 .loader.done { visibility: hidden; }
 
+/* =========================================================
+   Телефон: вертикальная рамка 1080×2340 (класс .mobile ставит main.js)
+   ========================================================= */
+.mobile .header { left: 60px; top: 110px; width: 960px; height: 90px; }
+.mobile .logo { width: 430px; height: 67px; }
+.mobile .btn span:first-child { font-size: 26px; line-height: 32px; }
+.mobile .btn .arrow { font-size: 36px; line-height: 40px; }
+.mobile .btn-outline { width: 310px; height: 84px; padding: 0 32px 0 36px; }
+.mobile .btn-solid { width: 420px; height: 100px; padding: 0 38px 0 42px; }
+
+.mobile .copy,
+.mobile .copy.first { left: 60px; top: 1500px; width: 960px; }
+.mobile .title { font-size: 132px; line-height: 118px; }
+.mobile .copy.first .title { height: auto; }
+.mobile .text { font-size: 33px; line-height: 48px; }
+.mobile .copy .text,
+.mobile .copy.first .text { margin-top: 34px; }
+.mobile .copy .btn,
+.mobile .copy.first .btn { position: relative; display: flex; left: 0; top: auto; margin-top: 46px; }
+
+.mobile .detail { left: 60px; top: 250px; width: 960px; gap: 14px; }
+.mobile .detail .title { font-size: 86px; line-height: 1; }
+.mobile .detail .text { font-size: 28px; line-height: 40px; width: 560px; }
+.mobile .detail .weight { font-size: 64px; line-height: 64px; }
+
+.mobile .callouts { display: none; }
+.mobile .footer .hairline { left: 60px; top: 2200px; width: 960px; }
+.mobile .footer .hint { left: 60px; top: 2236px; font-size: 26px; line-height: 32px; }
+.mobile .footer .marker { display: none; }
+.mobile .footer .chapter { left: auto; right: 60px; top: 2230px; font-size: 32px; line-height: 40px; }
+
+.mobile .progress { right: 10px; gap: 7px; }
+.mobile .progress i { width: 3px; height: 14px; }
+.mobile .progress i.on { height: 26px; }
+.mobile .progress i.gap { height: 6px; }
+
 @media (prefers-reduced-motion: reduce) {
   .btn, .btn .arrow { transition: none; }
 }
