@@ -143,7 +143,7 @@ export const FLAVORS = [
       { id: 'chocC', layer: 'front', ...choc.c, depth: 1.1, off: { dx: -380, dy: 360, rot: 50 },
         states: [null, { c: [585.49, 939.81], rot: 110.23 }, null] },
       { id: 'chocB', layer: 'front', ...choc.b, depth: 0.8, off: { dx: 460, dy: -260, rot: 60 },
-        states: [null, { c: [1695.75, 370.85], rot: 99.68 }, { c: [521.75, 28.85], rot: 99.68 }] },
+        states: [null, { c: [1695.75, 370.85], rot: 99.68 }, { c: [760, 6], rot: 112 }] }, // правее логотипа
       { id: 'chocB2', layer: 'front', ...choc.b, depth: 1, off: { dx: 200, dy: 420, rot: 70 },
         states: [null, null, { c: [1422.6, 1025.76], rot: 99.68, scale: 0.7546 }] },
     ],

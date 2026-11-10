@@ -194,26 +194,50 @@ function buildWrapTexture(img) {
   cv.width = w; cv.height = h;
   const ctx = cv.getContext('2d');
   if (TEST_UV) {
-    ctx.fillStyle = '#e33'; ctx.fillRect(0, 0, w / 2, h);
-    ctx.fillStyle = '#36c'; ctx.fillRect(w / 2, 0, w / 2, h);
-    ctx.fillStyle = '#fff'; ctx.font = `bold ${h / 8}px sans-serif`; ctx.textAlign = 'center';
-    ctx.fillText('FRONT ↑', w / 4, h / 2); ctx.fillText('BACK ↑', w * 3 / 4, h / 2);
+    // сетка-проверка: середина — перед, края — две половины зада
+    ctx.fillStyle = '#36c'; ctx.fillRect(0, 0, w, h);
+    ctx.fillStyle = '#e33'; ctx.fillRect(q, 0, 2 * q, h);
+    ctx.strokeStyle = 'rgba(255,255,255,.6)'; ctx.lineWidth = 4;
+    for (let x = 0; x <= w; x += w / 16) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke(); }
+    for (let y = 0; y <= h; y += h / 10) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke(); }
+    ctx.fillStyle = '#fff'; ctx.font = `bold ${h / 9}px sans-serif`; ctx.textAlign = 'center';
+    ctx.fillText('ФРОНТ ↑', w / 2, h / 2); ctx.fillText('ЗАД-Л', w / 8, h / 2); ctx.fillText('ЗАД-П', w * 7 / 8, h / 2);
   } else {
-    ctx.drawImage(img, q, 0, 2 * q, h, 0, 0, 2 * q, h);       // перед
-    ctx.drawImage(img, 3 * q, 0, q, h, 2 * q, 0, q, h);       // зад, правая часть плёнки
-    ctx.drawImage(img, 0, 0, q, h, 3 * q, 0, q, h);           // зад, левая часть плёнки
+    ctx.drawImage(img, 0, 0);
   }
   const tex = new THREE.CanvasTexture(cv);
   tex.flipY = true;
   tex.colorSpace = THREE.SRGBColorSpace;
-  tex.wrapS = THREE.RepeatWrapping;
-  // UV модели идут по кругу 0..2. Лицевая сторона занимает u ≈ −0.03…0.925,
-  // её вписываем ровно в левую половину холста, остальное ложится на зад и бока.
-  const FRONT_U0 = 0.05, FRONT_U1 = 0.925; // левый край сдвинут внутрь: у модели он уходит на бок пакета
-  tex.repeat.x = 0.5 / (FRONT_U1 - FRONT_U0);
-  tex.offset.x = -FRONT_U0 * tex.repeat.x;
+  tex.wrapS = THREE.RepeatWrapping;   // шов посередине задней стороны
   tex.anisotropy = renderer.capabilities.getMaxAnisotropy();
-  return { tex, aspect: (w / 2) / h };
+  return { tex };
+}
+
+// Своя развёртка для пакета (родная у модели с перекосами).
+// Перед проецируется на середину макета (25…75% ширины), зад — на края:
+// правый край перед → 75…100% макета → шов по центру зада → 0…25% → левый край перед.
+// По высоте — весь макет сверху вниз.
+function remapBagUV(geo) {
+  const g = geo.index ? geo.toNonIndexed() : geo;
+  const pos = g.attributes.position;
+  let hw = 0, y0 = Infinity, y1 = -Infinity;
+  for (let i = 0; i < pos.count; i++) {
+    hw = Math.max(hw, Math.abs(pos.getX(i)));
+    y0 = Math.min(y0, pos.getY(i)); y1 = Math.max(y1, pos.getY(i));
+  }
+  const uv = new Float32Array(pos.count * 2);
+  for (let i = 0; i < pos.count; i++) {
+    const x = pos.getX(i) / hw, front = pos.getZ(i) >= 0;
+    uv[i * 2] = front ? 0.5 + 0.25 * x : (x > 0 ? 1 - 0.25 * x : -0.25 * x);
+    uv[i * 2 + 1] = (pos.getY(i) - y0) / (y1 - y0);
+  }
+  // треугольники, которые пересекают шов по центру зада, «перешагивают» через 1 (текстура повторяется)
+  for (let t = 0; t < pos.count; t += 3) {
+    const us = [uv[t * 2], uv[t * 2 + 2], uv[t * 2 + 4]];
+    if (Math.max(...us) - Math.min(...us) > 0.5) for (let k = 0; k < 3; k++) if (us[k] < 0.5) uv[(t + k) * 2] += 1;
+  }
+  g.setAttribute('uv', new THREE.BufferAttribute(uv, 2));
+  return { geo: g, width: hw * 2, height: y1 - y0 };
 }
 
 const loadImage = (src) => new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = rej; i.src = src; });
@@ -245,22 +269,23 @@ async function loadPacks() {
   geos.forEach((g) => { g.computeBoundingBox(); box.union(g.boundingBox); });
   const size = box.getSize(new THREE.Vector3()), center = box.getCenter(new THREE.Vector3());
   geos.forEach((g) => g.translate(-center.x, -center.y, -center.z));
+  const body = remapBagUV(geos[0]);
+  geos[0] = body.geo;
 
-  // Форма пакета одна на все вкусы и не зависит от размеров картинки развёртки:
-  // ширина/высота лицевой стороны берётся по первой развёртке.
+  // Форма пакета одна на все вкусы и не зависит от размеров картинки:
+  // пропорции лицевой стороны = половина ширины макета : высота (по первому вкусу).
   const BAG_ASPECT = (wraps[0].naturalWidth / 2) / wraps[0].naturalHeight;
   packs.forEach((p, i) => {
     const { tex } = buildWrapTexture(wraps[i]);
-    const aspect = BAG_ASPECT;
     geos.forEach((g, gi) => {
       const mat = gi === 0
         ? new THREE.MeshPhysicalMaterial({ map: tex, roughness: 0.38, metalness: 0.05, clearcoat: 0.7, clearcoatRoughness: 0.22, side: THREE.DoubleSide })
         : new THREE.MeshPhysicalMaterial({ color: p.F.seal, roughness: 0.4, metalness: 0.1, clearcoat: 0.5, side: THREE.DoubleSide });
       p.bag.add(new THREE.Mesh(g, mat));
     });
-    // высота = 1, ширина — по пропорциям лицевой стороны развёртки
+    // высота = 1, ширина корпуса — по пропорциям лицевой стороны макета (рисунок не растягивается)
     const k = 1 / size.y;
-    p.bag.scale.set(k * (aspect / (size.x / size.y)), k, k);
+    p.bag.scale.set(k * BAG_ASPECT * body.height / body.width, k, k);
   });
   renderer.compile(scene, camera);
 }

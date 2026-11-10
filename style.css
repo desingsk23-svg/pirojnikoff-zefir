@@ -96,7 +96,8 @@ html.lenis, html.lenis body { height: auto; }
 .btn-solid:hover { transform: translateY(-2px); }
 
 /* ---------- тексты ---------- */
-.copy { position: absolute; left: 80px; top: 506px; width: 836px; }
+/* заголовок, текст и кнопка — по одной левой линии */
+.copy { position: absolute; left: 88px; top: 506px; width: 836px; }
 .copy.first { left: 88px; top: 400px; }
 .title {
   font-family: 'AA Bebas Neue', 'Bebas Neue', Impact, sans-serif;
@@ -105,12 +106,12 @@ html.lenis, html.lenis body { height: auto; }
 }
 .text { font-size: 22px; line-height: 33px; color: var(--soft); }
 .copy .text { margin-top: 35.556px; }
-.copy .btn { position: absolute; left: 8px; top: 385px; }
+.copy .btn { position: absolute; left: 0; top: 385px; }
 .copy.first .title { height: 251px; }
 .copy.first .text { margin-top: 43.5px; }
 .copy.first .btn { left: 0; top: 401px; }
 
-.detail { position: absolute; left: 1475px; top: 164px; width: 337px; display: flex; flex-direction: column; gap: 20px; }
+.detail { position: absolute; left: 1475px; top: 262px; /* ниже шапки, чтобы не задевать «Выбрать вкус» */ width: 337px; display: flex; flex-direction: column; gap: 20px; }
 .detail .title { font-size: 80px; line-height: 1; }
 .detail .text { font-size: 17px; line-height: 26.35px; width: 322px; }
 .detail .weight { font-family: 'Cormorant Garamond', Georgia, serif; font-weight: 500; font-size: 56px; line-height: 56px; color: var(--ink); }
