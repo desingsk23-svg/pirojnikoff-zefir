@@ -1,0 +1,165 @@
+@font-face {
+  font-family: 'AA Bebas Neue';
+  src: url('assets/fonts/aa_bebasneue.ttf') format('truetype');
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Manrope';
+  src: url('assets/fonts/manrope.ttf') format('truetype');
+  font-weight: 200 800;
+  font-display: swap;
+}
+
+:root {
+  --ink: #5a252d;
+  --soft: #80525a;
+  --line: rgba(90, 37, 45, .18);
+  --border: rgba(90, 37, 45, .35);
+  --cta: #5a252d;
+  --cta-text: #fff8ee;
+  --base: #f78aa0;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { background: var(--base); color: var(--ink); }
+body { font-family: 'Manrope', system-ui, sans-serif; overflow-x: hidden; -webkit-font-smoothing: antialiased; }
+html.lenis, html.lenis body { height: auto; }
+.lenis.lenis-smooth { scroll-behavior: auto !important; }
+
+/* ---------- сцена ---------- */
+.scene { position: relative; /* высота задаётся из JS по длине таймлайна */ }
+.sticky { position: sticky; top: 0; height: 100vh; height: 100svh; overflow: hidden; }
+
+/* Слой вкуса на весь экран. Порядок:
+   клубника-зад(1) < фисташка-зад(1) < 3D-канвас(2) < клубника-перед(3) < фисташка-перед(3) < шапка(5) */
+.world { position: absolute; inset: 0; pointer-events: none; }
+.world-back { z-index: 1; }
+.world-front { z-index: 3; }
+.world .shift { position: absolute; inset: 0; will-change: transform; }
+.world .bg {
+  position: absolute; inset: -12% 0; /* запас по высоте для параллакса */
+  background-size: cover; background-position: center;
+  will-change: transform;
+}
+.world.is-clipped { will-change: clip-path; }
+
+#gl {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  z-index: 2;
+  pointer-events: none;
+}
+
+/* Сцена в координатах макета 1920×1080, масштабируется под экран из JS */
+.stage {
+  position: absolute; left: 50%; top: 50%;
+  width: 1920px; height: 1080px;
+  transform-origin: 0 0;
+}
+.layer { position: absolute; inset: 0; }
+
+.ui { position: absolute; inset: 0; z-index: 5; pointer-events: none; }
+.ui .header, .world-front .btn { pointer-events: auto; }
+
+.el { position: absolute; left: 0; top: 0; will-change: transform; }
+.el .w { position: absolute; left: 0; top: 0; }
+.el .clip { position: absolute; overflow: hidden; }
+.el .clip img { position: absolute; display: block; max-width: none; user-select: none; -webkit-user-drag: none; }
+
+/* ---------- шапка ---------- */
+.header {
+  position: absolute; left: 100px; top: 86px; width: 1696px; height: 74px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.logo { position: relative; width: 516px; height: 80px; }
+.logo img { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+
+.btn {
+  display: inline-flex; align-items: center; justify-content: space-between;
+  border-radius: 40px; text-decoration: none; cursor: pointer;
+  font-family: inherit; white-space: nowrap;
+  transition: transform .4s cubic-bezier(.2, .8, .2, 1), background-color .3s, color .3s;
+}
+.btn span:first-child { font-weight: 600; font-size: 17px; line-height: 22.1px; }
+.btn .arrow { font-size: 25px; line-height: 32.5px; transition: transform .4s cubic-bezier(.2, .8, .2, 1); }
+.btn:hover .arrow { transform: translateX(6px); }
+.btn-outline {
+  width: 226px; height: 58px; padding: 0 26px 0 28px;
+  background: transparent; color: var(--ink);
+  border: 1px solid var(--border);
+}
+.btn-outline:hover { background: var(--ink); color: var(--cta-text); }
+.btn-solid {
+  width: 282px; height: 66px; padding: 0 26px 0 28px;
+  background: var(--cta); color: var(--cta-text);
+}
+.btn-solid:hover { transform: translateY(-2px); }
+
+/* ---------- тексты ---------- */
+.copy { position: absolute; left: 80px; top: 506px; width: 836px; }
+.copy.first { left: 88px; top: 400px; }
+.title {
+  font-family: 'AA Bebas Neue', 'Bebas Neue', Impact, sans-serif;
+  font-weight: 400; font-size: 144.21px; line-height: 125.463px;
+  color: var(--ink); text-transform: uppercase;
+}
+.text { font-size: 22px; line-height: 33px; color: var(--soft); }
+.copy .text { margin-top: 35.556px; }
+.copy .btn { position: absolute; left: 8px; top: 385px; }
+.copy.first .title { height: 251px; }
+.copy.first .text { margin-top: 43.5px; }
+.copy.first .btn { left: 0; top: 401px; }
+
+.detail { position: absolute; left: 1475px; top: 164px; width: 337px; display: flex; flex-direction: column; gap: 20px; }
+.detail .title { font-size: 80px; line-height: 1; }
+.detail .text { font-size: 17px; line-height: 26.35px; width: 322px; }
+.detail .weight { font-family: 'Cormorant Garamond', Georgia, serif; font-weight: 500; font-size: 56px; line-height: 56px; color: var(--ink); }
+
+.line { display: block; overflow: hidden; }
+.line > span { display: inline-block; will-change: transform; }
+
+.callouts { position: absolute; inset: 0; }
+.callout { position: absolute; font-weight: 500; color: var(--soft); }
+.leader { position: absolute; display: block; }
+
+/* ---------- подвал первого экрана ---------- */
+.footer { position: absolute; inset: 0; color: var(--ink); }
+.footer .hairline { position: absolute; left: 112px; top: 973px; width: 1696px; height: 1px; background: var(--line); }
+.footer .hint, .footer .marker { position: absolute; top: 1000px; font-size: 14px; line-height: 18.2px; }
+.footer .hint { left: 112px; }
+.footer .marker { left: 816px; }
+.footer .chapter { position: absolute; left: 1733px; top: 996px; font-size: 20px; line-height: 26px; font-weight: 500; }
+
+/* ---------- индикатор прогресса по экранам ---------- */
+.progress {
+  position: absolute; z-index: 6; right: 28px; top: 50%; transform: translateY(-50%);
+  display: flex; flex-direction: column; gap: 10px;
+}
+.progress i {
+  display: block; width: 3px; height: 22px; border-radius: 3px;
+  background: var(--line); transition: background-color .4s, height .4s;
+}
+.progress i.on { background: var(--ink); height: 38px; }
+.progress i.gap { height: 10px; background: transparent; }
+
+.credits {
+  padding: 28px 16px; text-align: center;
+  font-size: 13px; color: var(--soft); opacity: .7;
+}
+
+/* ---------- загрузка ---------- */
+.loader {
+  position: fixed; inset: 0; z-index: 50;
+  display: grid; place-items: center;
+  background: var(--base);
+}
+.loader span { width: 120px; height: 2px; background: var(--line); position: relative; overflow: hidden; }
+.loader span::after {
+  content: ''; position: absolute; inset: 0; background: var(--ink);
+  transform: scaleX(var(--p, 0)); transform-origin: 0 50%; transition: transform .3s;
+}
+.loader.done { visibility: hidden; }
+
+@media (prefers-reduced-motion: reduce) {
+  .btn, .btn .arrow { transition: none; }
+}
